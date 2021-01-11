@@ -8,24 +8,46 @@ import {
     TextInput,
     Modal
 } from "react-native";
-import { Button, Icon, Input } from "react-native-elements";
+import {
+    Button,
+    Icon,
+    Input,
+    CheckBox
+} from "react-native-elements";
 import { connect } from "react-redux";
 
 import Api from "../libs/Api";
 import { styleGlobalScreen, styleListScreen } from "../assets/styles/Style";
-import { detailTransaction, filterTransaction, getTransaction, sortTransaction } from "../redux/actions/transaction";
+import { detailTransaction, getTransaction, sortTransaction } from "../redux/actions/transaction";
 import Helper from "../libs/Helper";
 import { listIcon } from "../assets/icons/Icon";
+import Color from "../config/Color";
 
 class TransactionListScreen extends Component {
     constructor(props) {
         super(props);
         this.storeKey = 'transaction';
         this.state = {
-            trxList: [],
             keyWord: '',
             searchList: [],
-            showSortModal: false
+            showSortModal: false,
+            sortOption: [{
+                text: "URUTKAN",
+                order: ''
+            }, {
+                text: "Nama A-Z",
+                order: "beneficiary_name asc"
+            }, {
+                text: "Nama Z-A",
+                order: "beneficiary_name desc"
+            }, {
+                text: "Tanggal Terbaru",
+                order: "created_at desc"
+            }, {
+                text: "Tanggal Terlama",
+                order: "created_at asc"
+            }],
+            activeSort: ''
         }
     }
 
@@ -40,7 +62,6 @@ class TransactionListScreen extends Component {
         try {
             let data = await Api.getData();
             response = this.reMapTransaction(data);
-            Helper.setToLocalStorage(this.storeKey, JSON.stringify(response));
         } catch (err) {
             alert(`Something went wrong!${err}`);
         }
@@ -58,10 +79,28 @@ class TransactionListScreen extends Component {
         return res;
     }
 
-    filterSearch = async () => {
-        let data = await Helper.getFromLocalStorage(this.storeKey);
-        this.props.get(JSON.parse(data));
-        this.props.filter(this.state.keyWord);
+    filterSearch(text) {
+        // Initiate variables
+        let data = this.props.trxList;
+        // Build regex
+        let reg = new RegExp(text.toLowerCase(), "gi");
+        // Filter list
+        let newList = data.filter((item) => {
+            let name = item.beneficiary_name.toLowerCase();
+            let bank = item.beneficiary_bank.toLowerCase();
+            let sBank = item.sender_bank.toLowerCase();
+            let amount = item.amount.toString();
+
+            return reg.test(name) ||
+                reg.test(bank) ||
+                reg.test(sBank) ||
+                reg.test(amount);
+        });
+        if (text === '') {
+            newList = []
+        }
+        // Store to state
+        this.setState({ searchList: newList })
     }
 
     sortTransaction = (key) => {
@@ -69,7 +108,7 @@ class TransactionListScreen extends Component {
         this.modalSortHandler()
     }
 
-    modalSortHandler() {
+    modalSortHandler = () => {
         this.setState({
             showSortModal: !this.state.showSortModal
         });
@@ -82,50 +121,42 @@ class TransactionListScreen extends Component {
             visible={this.state.showSortModal}
         >
             <View
-            style={{
-                flex: 1,
-                alignItems: "center",
-                backgroundColor: "rgba(0,0,0,0.3)"
-            }}>
-                <View style={{
-                    backgroundColor: "#fff",
-                    margin: 20
-                }}>
-                    <View>
-                        <TouchableOpacity
-                            onPress={() => this.modalSortHandler()}
-                        >
-                            <Text>X</Text>
-                        </TouchableOpacity>
-                    </View>
-                    <View>
-                        <TouchableOpacity
-                            onPress={() => this.sortTransaction("beneficiary_name asc")}
-                        >
-                            <Text>Nama A-Z</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            onPress={() => this.sortTransaction("beneficiary_name desc")}
-                        >
-                            <Text>Nama Z-A</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            onPress={() => this.sortTransaction("created_at desc")}
-                        >
-                            <Text>Tanggal Terbaru</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            onPress={() => this.sortTransaction("created_at asc")}
-                        >
-                            <Text>Tanggal Terlama</Text>
-                        </TouchableOpacity>
-                    </View>
+                style={styleListScreen.modalContainer}
+                onPress={() => this.modalSortHandler()}
+            >
+                <View style={styleListScreen.modalItemContainer}>
+                    {this.state.sortOption.map((sort) => {
+                        return (
+                            <CheckBox
+                                center
+                                title={sort.text}
+                                textStyle={{
+                                    fontSize: 16,
+                                    color: Color.orange
+                                }}
+                                containerStyle={{
+                                    borderWidth: 0,
+                                    backgroundColor: "",
+                                    alignItems: "flex-start"
+                                }}
+                                checkedIcon='dot-circle-o'
+                                uncheckedIcon='circle-o'
+                                checked={this.state.activeSort === sort.order}
+                                checkedColor={Color.orange}
+                                uncheckedColor={Color.orange}
+                                onPress={() => {
+                                    this.setState({ activeSort: sort.order })
+                                    this.sortTransaction(sort.order)
+                                }}
+                            />
+                        )
+                    })}
                 </View>
             </View>
         </Modal>
     );
 
-    renderItem({ item }) {
+    renderItem = ({ item }) => {
         let {
             mainColor, fontColor,
             backgroundColor, statusText
@@ -136,7 +167,7 @@ class TransactionListScreen extends Component {
         let reformatedDate = Helper.reformatDate(item.created_at.split(" ")[0]);
         return (
             <TouchableOpacity onPress={() => {
-                this.props.detail(itemId)
+                this.props.detail(item.id)
                 this.props.navigation.navigate('DetailTransactionScreen')
             }}>
                 <View style={[
@@ -202,7 +233,7 @@ class TransactionListScreen extends Component {
     };
 
     render() {
-        let { trxList, searchList } = this.state;
+        let { searchList } = this.state;
         return (
             <SafeAreaView style={styleGlobalScreen.mainView}>
                 {this.renderModalSort()}
@@ -218,12 +249,13 @@ class TransactionListScreen extends Component {
                             inputStyle={styleListScreen.searchInput}
                             placeholder='Cari nama, bank, atau nominal'
                             onChangeText={(text) => {
-                                this.setState({ keyWord: text })
-                                this.filterSearch()
+                                this.filterSearch(text)
                             }}
                         />
                         <Button
-                            title='URUTKAN'
+                            title={this.state.sortOption.filter((sort) => {
+                                    return sort.order === this.state.activeSort
+                            })[0].text}
                             type='clear'
                             titleStyle={styleListScreen.searchButtonText}
                             buttonStyle={styleListScreen.searchButton}
@@ -238,7 +270,7 @@ class TransactionListScreen extends Component {
                     {/* List */}
                     <View style={styleListScreen.listContainer}>
                         <FlatList
-                            data={this.props.trxList}
+                            data={searchList.length > 0 ? searchList : this.props.trxList}
                             renderItem={this.renderItem}
                             keyExtractor={item => item.id}
                         />
@@ -258,7 +290,6 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
     return {
         get: (data) => dispatch(getTransaction(data)),
-        filter: (key) => dispatch(filterTransaction(key)),
         order: (key) => dispatch(sortTransaction(key)),
         detail: (id) => dispatch(detailTransaction(id))
     }

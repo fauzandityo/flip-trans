@@ -14,6 +14,16 @@ const listIcon = {
     }
 }
 
+const detailIcon = {
+    copyIcon: {
+        type: "ionicon",
+        name: "copy-outline",
+        size: 14,
+        color: Color.orange
+    }
+}
+
 export {
-    listIcon
+    listIcon,
+    detailIcon
 }

@@ -1,34 +1,9 @@
 import 'intl';
 import 'intl/locale-data/jsonp/id';
-import AsyncStorage from "@react-native-community/async-storage";
 
 import Color from "../config/Color";
 
 class Helper {
-    async getFromLocalStorage(key) {
-        try {
-            const value = await AsyncStorage.getItem(key, (err, res) => {});
-            return value;
-        } catch (error) {
-            console.log(error);
-        }
-    }
-
-    async setToLocalStorage(key, value) {
-        try {
-            await AsyncStorage.setItem(key, value);
-        } catch (error) {
-            console.log(error);
-        }
-    }
-
-    async clearLocalStorage(key) {
-        try {
-            await AsyncStorage.removeItem(key);
-        } catch (error) {
-            console.log(error);
-        }
-    }
     
     getSortOrder(prop, order) {
         return function(a, b) {
@@ -58,6 +33,14 @@ class Helper {
         return result;
     }
 
+    /**
+     * @description Reformating number to give currency value
+     * @author Fauzan
+     * @date 2021-01-10
+     * @param {Integer} = 1000
+     * @returns {String} = 1.000
+     * @memberof Helper
+     */
     rewriteNumber(number) {
         const currencyOptions = new Intl.NumberFormat('id-ID', {
             currency: 'IDR',
@@ -69,6 +52,14 @@ class Helper {
         return value;
     }
 
+    /**
+     * @description Reformating date
+     * @author Fauzan
+     * @date 2021-01-10
+     * @param {String} = 2021-01-02
+     * @returns {String} = 2 Januari 2021
+     * @memberof Helper
+     */
     reformatDate(dateString) {
         var fmtDate = new Date(dateString);
         var month = [
@@ -80,6 +71,14 @@ class Helper {
         return fmtDate.getDate() + " " + month + " " + fmtDate.getFullYear();
     }
 
+    /**
+     * @description Reformating status
+     * @author Fauzan
+     * @date 2021-01-10
+     * @param {String} = SUCCESS/PENDING
+     * @returns {Object}
+     * @memberof Helper
+     */
     reformatStatus(status) {
         let result = {
             mainColor: Color.green,

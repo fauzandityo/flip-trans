@@ -9,8 +9,7 @@ import {
  const styleGlobalScreen = StyleSheet.create({
      mainView: {
          flex: 1,
-        //  alignItems: "center",
-         backgroundColor: Color.lightGrey
+         backgroundColor: Color.lighterGrey
      }
  });
 
@@ -47,6 +46,8 @@ import {
     searchButtonText: {
         fontSize: 12,
         color: Color.orange,
+        padding: 0,
+        maxWidth: 55,
         fontWeight: 'bold'
     },
     // List Item
@@ -101,10 +102,75 @@ import {
         paddingVertical: 3,
         borderWidth: 1,
         borderRadius: 3
+    },
+    // Modal
+    modalContainer: {
+        flex: 1,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "rgba(0,0,0,0.3)"
+    },
+    modalItemContainer: {
+        backgroundColor: Color.white,
+        borderRadius: 5,
+        height: 400,
+        width: 316,
+        padding: 20,
+        paddingVertical: 30,
+        margin: 20
     }
  });
 
+ const styleDetailScreen = StyleSheet.create({
+     titleText: {
+         fontSize: 14,
+         fontWeight: '700',
+         textTransform: 'uppercase'
+     },
+     containerId: {
+        flexDirection: "row",
+        marginTop: 10,
+        marginBottom: 1,
+        backgroundColor: Color.white,
+        paddingHorizontal: 20,
+        paddingVertical: 20
+    },
+    detailContainer: {
+        backgroundColor: Color.white
+    },
+    containerSubtitle: {
+        flexDirection: "row",
+        borderBottomWidth: 1,
+        borderBottomColor: Color.lightGrey,
+        paddingHorizontal: 20,
+        paddingVertical: 10
+    },
+    btnCloseContainer: {
+        marginRight: 10
+    },
+    btnCloseText: {
+        fontSize: 14,
+        color: Color.orange
+    },
+    bankText: {
+        fontWeight: '500',
+        fontSize: 16,
+    },
+    itemContainer: {
+        paddingHorizontal: 20,
+        paddingVertical: 10
+    },
+    containerRow: {
+        flexDirection: "row"
+    },
+    centerContainer: {
+        flex: 1,
+        justifyContent: "center"
+    }
+ })
+
  export {
      styleGlobalScreen,
-     styleListScreen
+     styleListScreen,
+     styleDetailScreen
  }
